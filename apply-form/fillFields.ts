@@ -16,9 +16,10 @@ async function fillFields(page: Page, formData: ApplicationFormData): Promise<vo
 
   await insertPhone(page, formData.phone).catch(noop);
 
-  await uncheckFollowCompany(page);
-
+  
   await uploadDocs(page, formData.cvPath, formData.coverLetterPath).catch(noop);
+  
+  await uncheckFollowCompany(page);
 
   const textFields = {
     ...formData.textFields,
@@ -30,7 +31,6 @@ async function fillFields(page: Page, formData: ApplicationFormData): Promise<vo
   const booleans = formData.booleans;
 
   booleans['sponsorship'] = formData.requiresVisaSponsorship;
-
   await fillBoolean(page, booleans).catch(console.log);
 
   const multipleChoiceFields = {

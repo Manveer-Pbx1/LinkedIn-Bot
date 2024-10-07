@@ -9,11 +9,10 @@ To run this tool follow the following steps
 npm i
 ```
 
-### Second step, copy the sample configuration file to your environment and fill it with your information
-```
-cp sample_config.ts config.ts
-```
-config.ts
+### Second step, modify the config.ts file 
+
+*config.ts has the details you need to fill for you job roles, you can modify it and follow the structure below*
+
 ```TS
 export default {
   // LOGIN DETAILS
@@ -64,11 +63,10 @@ export default {
 
 ### Third step, run the program
 
-```
-npm run apply
-```
+  ```
+  npm start
+  ```
 
-To run the program without pressing the submit form button (for testing purposes)
-```
-npm run start
-```
+### How the tool is supposed to work
+
+Upon running the program, a new window would appear where first the login would happen automatically, and secondly, you might need to resolve the captcha on your own as LinkedIn practices to avoid abuse of bots.

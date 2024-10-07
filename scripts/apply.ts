@@ -11,7 +11,6 @@ interface AppState {
 }
 
 const wait = (time: number) => new Promise((resolve) => setTimeout(resolve, time));
-
 const state: AppState = {
   paused: false,
 };
@@ -30,14 +29,17 @@ const askForPauseInput = async () => {
 };
 
 (async () => {
+  console.log("Launching browser...");
   const browser = await puppeteer.launch({
     headless: false,
-    ignoreHTTPSErrors: true,
-    args: ["--disable-setuid-sandbox", "--no-sandbox",]
+    ignoreHTTPSErrors: false,
+    args: ["--disable-setuid-sandbox", "--no-sandbox"],
   });
-  const context = await browser.createIncognitoBrowserContext();
-  const listingPage = await context.newPage();
-
+  
+  console.log("Opening new page for LinkedIn login...");
+  const listingPage = await browser.newPage();
+  
+  console.log("Logging in...");
   const pages = await browser.pages();
 
   await pages[0].close();
@@ -45,11 +47,13 @@ const askForPauseInput = async () => {
   await login({
     page: listingPage,
     email: config.LINKEDIN_EMAIL,
-    password: config.LINKEDIN_PASSWORD
+    password: config.LINKEDIN_PASSWORD,
   });
+  console.log("Logged in successfully.");
 
   askForPauseInput();
 
+  console.log("Fetching job listings...");
   const linkGenerator = fetchJobLinksUser({
     page: listingPage,
     location: config.LOCATION,
@@ -61,14 +65,17 @@ const askForPauseInput = async () => {
     },
     jobTitle: config.JOB_TITLE,
     jobDescription: config.JOB_DESCRIPTION,
-    jobDescriptionLanguages: config.JOB_DESCRIPTION_LANGUAGES
+    jobDescriptionLanguages: config.JOB_DESCRIPTION_LANGUAGES,
   });
 
   let applicationPage: Page | null = null;
 
   for await (const [link, title, companyName] of linkGenerator) {
-    if (!applicationPage || process.env.SINGLE_PAGE !== "true")
-      applicationPage = await context.newPage();
+    console.log(`Found job: ${title} at ${companyName}, applying...`);
+    if (!applicationPage || process.env.SINGLE_PAGE !== "true") {
+      console.log("Opening a new page for the job application...");
+      applicationPage = await browser.newPage();
+    }
 
     await applicationPage.bringToFront();
 
@@ -85,7 +92,7 @@ const askForPauseInput = async () => {
         textFields: config.TEXT_FIELDS,
         multipleChoiceFields: config.MULTIPLE_CHOICE_FIELDS,
       };
-
+      console.log("Filling the application form...");
       await apply({
         page: applicationPage,
         link,
@@ -93,18 +100,20 @@ const askForPauseInput = async () => {
         shouldSubmit: process.argv[2] === "SUBMIT",
       });
 
-      console.log(`Applied to ${title} at ${companyName}`);
-    } catch {
-      console.log(`Error applying to ${title} at ${companyName}`);
+      console.log(`Successfully applied to ${title} at ${companyName}`);
+    } catch (err) {
+      console.log(`Error applying to ${title} at ${companyName}:`, err);
     }
 
     await listingPage.bringToFront();
 
-    for(let shouldLog = true; state.paused; shouldLog = false){
-	shouldLog && console.log("\nProgram paused, press enter to continue the program");
-	await wait(2000);
+    for (let shouldLog = true; state.paused; shouldLog = false) {
+      shouldLog && console.log("\nProgram paused, press enter to continue the program");
+      await wait(2000);
     }
   }
 
+  // Uncomment if you want to close the browser after completion
+  // console.log("Closing the browser...");
   // await browser.close();
 })();

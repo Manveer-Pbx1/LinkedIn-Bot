@@ -7,27 +7,60 @@ import selectors from '../selectors';
 
 const MAX_PAGE_SIZE = 7;
 const languageDetector = new LanguageDetect();
-
+// const cookies = JSON.parse(fs.readFileSync('./cookies.json', 'utf-8'));
 async function getJobSearchMetadata({ page, location, keywords }: { page: Page, location: string, keywords: string }) {
+  // Navigate to LinkedIn jobs page
   await page.goto('https://linkedin.com/jobs', { waitUntil: "load" });
 
+  // Wait for the keyword input field to appear and type the search keywords
+  await page.waitForSelector(selectors.keywordInput, { visible: true });
   await page.type(selectors.keywordInput, keywords);
+
+  // Wait for the location input field to appear and focus on it
   await page.waitForSelector(selectors.locationInput, { visible: true });
-  await page.$eval(selectors.locationInput, (el, location) => (el as HTMLInputElement).value = location, location);
-  await page.type(selectors.locationInput, ' ');
-  await page.$eval('button.jobs-search-box__submit-button', (el) => el.click());
+  await page.click(selectors.locationInput); // Focus on the location input
+
+  // Use `page.evaluate` to directly modify the location input value
+  await page.evaluate((selector, location) => {
+    const locationInput = document.querySelector(selector) as HTMLInputElement;
+    if (locationInput) {
+      locationInput.value = ''; 
+      locationInput.value = location; 
+    }
+  }, selectors.locationInput, location);
+
+  await page.waitForFunction(
+    (selector, location) => {
+      const locationInput = document.querySelector(selector) as HTMLInputElement;
+      return locationInput && locationInput.value === location;
+    },
+    {},
+    selectors.locationInput,
+    location
+  );
+  await page.keyboard.press('Enter');
+
+
+  await page.waitForNavigation({ waitUntil: 'load' });
+
   await page.waitForFunction(() => new URLSearchParams(document.location.search).has('geoId'));
 
   const geoId = await page.evaluate(() => new URLSearchParams(document.location.search).get('geoId'));
 
-  const numJobsHandle = await page.waitForSelector(selectors.searchResultListText, { timeout: 5000 }) as ElementHandle<HTMLElement>;
+  const numJobsHandle = await page.waitForSelector(selectors.searchResultListText, { timeout: 10000 }) as ElementHandle<HTMLElement>;
   const numAvailableJobs = await numJobsHandle.evaluate((el) => parseInt((el as HTMLElement).innerText.replace(',', '')));
 
+  console.log("Job handle: ",numJobsHandle);
+  console.log("Geo ID: ",geoId);
+  console.log("number of jobs: ", numAvailableJobs)
   return {
     geoId,
     numAvailableJobs
   };
 };
+
+
+
 
 interface PARAMS {
   page: Page,
@@ -57,7 +90,7 @@ async function* fetchJobLinksUser({ page, location, keywords, workplace: { remot
     f_AL: 'true'
   };
 
-  if(geoId) {
+  if (geoId) {
     searchParams.geoId = geoId.toString();
   }
 
@@ -85,33 +118,44 @@ async function* fetchJobLinksUser({ page, location, keywords, workplace: { remot
           return [linkEl.href.trim(), linkEl.innerText.trim()];
         });
 
-        await page.waitForFunction(async (selectors) => {
-          const hasLoadedDescription = !!document.querySelector<HTMLElement>(selectors.jobDescription)?.innerText.trim();
-          const hasLoadedStatus = !!(document.querySelector(selectors.easyApplyButtonEnabled) || document.querySelector(selectors.appliedToJobFeedback));
+        // Wait for job description and Easy Apply button to be loaded
+        // await page.waitForFunction(() => {
+        //   const descriptionLoaded = !!document.querySelector(selectors.jobDescription);
+        //   const applyButtonVisible = !!document.querySelector(selectors.easyApplyButtonEnabled);
+        //   return descriptionLoaded && applyButtonVisible;
+        // });
 
-          return hasLoadedStatus && hasLoadedDescription;
-        }, {}, selectors);
+        // Try to click the apply button
+        console.log("Trying to click the apply button...")
+        const applyButton = await page.$(selectors.easyApplyButtonEnabled);
+        if (applyButton) {
+          await applyButton.click();
+          console.log(`Clicked on apply for job: ${title}`);
+        } else {
+          console.log(`Apply button not found for job: ${title}`);
+        }
 
-        const companyName = await page.$eval(`${selectors.searchResultListItem}:nth-child(${i + 1}) ${selectors.searchResultListItemCompanyName}`, el => (el as HTMLElement).innerText).catch(() => 'Unknown');;
+        const companyName = await page.$eval(`${selectors.searchResultListItem}:nth-child(${i + 1}) ${selectors.searchResultListItemCompanyName}`, el => (el as HTMLElement).innerText).catch(() => 'Unknown');
         const jobDescription = await page.$eval(selectors.jobDescription, el => (el as HTMLElement).innerText);
-        const canApply = !!(await page.$(selectors.easyApplyButtonEnabled));
-        const jobDescriptionLanguage = languageDetector.detect(jobDescription, 1)[0][0];
+        const jobDescriptionLanguage = languageDetector.detect(jobDescription, 1)[0][0];  
         const matchesLanguage = jobDescriptionLanguages.includes("any") || jobDescriptionLanguages.includes(jobDescriptionLanguage);
 
-        if (canApply && jobTitleRegExp.test(title) && jobDescriptionRegExp.test(jobDescription) && matchesLanguage) {
+        if (matchesLanguage && jobTitleRegExp.test(title) && jobDescriptionRegExp.test(jobDescription)) {
           numMatchingJobs++;
-
           yield [link, title, companyName];
         }
       } catch (e) {
-        console.log(e);
+        console.log(`Error processing job ${i + 1}:`, e);
       }
     }
 
     await wait(2000);
-
     numSeenJobs += jobListings.length;
   }
 }
 
+
 export default fetchJobLinksUser;
+
+// thoughts: i think we don't need the location thing as it will already be entered
+// TODO: remove the location and just perform search with keywords and also fix up the selectors in the way...

@@ -2,8 +2,14 @@ import { Page } from 'puppeteer';
 
 import selectors from '../selectors';
 import fillFields from '../apply-form/fillFields';
+import fillBoolean from '../apply-form/fillBoolean';
+import fillTextFields from '../apply-form/fillTextFields';
+import uncheckFollowCompany from '../apply-form/uncheckFollowCompany';
+import fillMultipleChoiceFields from '../apply-form/fillMultipleChoiceFields';
 import waitForNoError from '../apply-form/waitForNoError';
+import clickReviewButton from '../apply-form/clickReviewButton';
 import clickNextButton from '../apply-form/clickNextButton';
+import clickSubmit from '../apply-form/clickSubmit';
 
 const noop = () => { };
 
@@ -46,10 +52,14 @@ async function apply({ page, link, formData, shouldSubmit }: Params): Promise<vo
 
   while (maxPages--) {
     await fillFields(page, formData).catch(noop);
-
+    // await fillTextFields(page, formData.textFields).catch(noop);
+    // await fillBoolean(page, formData.booleans).catch(noop);
+    // await fillMultipleChoiceFields(page, formData.multipleChoiceFields).catch(noop);
+    await clickReviewButton(page).catch(noop);
     await clickNextButton(page).catch(noop);
-
+    await uncheckFollowCompany(page).catch(noop);
     await waitForNoError(page).catch(noop);
+    await clickSubmit(page).catch(noop);
   }
 
   const submitButton = await page.$(selectors.submit);

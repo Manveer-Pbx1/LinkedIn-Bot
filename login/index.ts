@@ -8,11 +8,9 @@ interface Params {
   email: string;
   password: string;
 }
-
 async function login({ page, email, password }: Params): Promise<void> {
   // Navigate to LinkedIn
-  await page.goto('https://www.linkedin.com/', { waitUntil: 'load' });
-
+  await page.goto('https://www.linkedin.com/login', { waitUntil: 'load' });
   // Enter login credentials and submit the form
   await page.type(selectors.emailInput, email);
   await page.type(selectors.passwordInput, password);
@@ -20,13 +18,13 @@ async function login({ page, email, password }: Params): Promise<void> {
   await page.click(selectors.loginSubmit);
 
   // Wait for the login to complete
-  await page.waitForNavigation({ waitUntil: 'load' });
+  await page.waitForNavigation({ waitUntil: 'load', timeout: 1000000 });
 
   const captcha = await page.$(selectors.captcha);
 
   if (captcha) {
     await ask('Please solve the captcha and then press enter');
-    await page.goto('https://www.linkedin.com/', { waitUntil: 'load' });
+    await page.goto('https://www.linkedin.com/jobs', { waitUntil: 'load' });
   }
 
   console.log('Logged in to LinkedIn');

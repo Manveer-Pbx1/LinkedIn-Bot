@@ -1,15 +1,17 @@
 export default {
-  easyApplyButtonEnabled: "button.jobs-apply-button:enabled",
+  easyApplyButtonEnabled: ".jobs-s-apply.jobs-s-apply--fadein.inline-flex.mr2 button.jobs-apply-button.artdeco-button.artdeco-button--3.artdeco-button--primary.ember-view",
 
   // Job search form
-  keywordInput: 'input[id*="jobs-search-box-keyword-id"]',
-  locationInput: 'input[id*="jobs-search-box-location-id"]',
+  keywordInput: ".jobs-search-box__input.jobs-search-box__input--keyword.jobs-search-box__input--both-bars.jobs-search-box__input--clear-text.jobs-search-box__input--redesigned.jobs-search-box__input--redesigned-small input[type='text']",
+  locationInput: ".jobs-search-box__input.jobs-search-box__input--location.jobs-search-box__input--both-bars.jobs-search-box__input--clear-text.jobs-search-box__input--redesigned.jobs-search-box__input--redesigned-small input[type='text']",
+  
 
   // Easy apply form
   checkbox: ".jobs-easy-apply-modal input[type='checkbox']",
   fieldset: ".jobs-easy-apply-modal fieldset",
   select: ".jobs-easy-apply-modal select",
   nextButton: ".jobs-easy-apply-modal footer button[aria-label*='next'], footer button[aria-label*='Review']",
+  reviewButton: ".jobs-easy-apply-modal footer button[aria-label*='Review your application']",
   submit: ".jobs-easy-apply-modal footer button[aria-label*='Submit']",
   enabledSubmitOrNextButton: ".jobs-easy-apply-modal footer button[aria-label*='Submit']:enabled, .jobs-easy-apply-modal  footer button[aria-label*='next']:enabled, .jobs-easy-apply-modal  footer button[aria-label*='Review']:enabled",
   textInput: ".jobs-easy-apply-modal input[type='text'], .jobs-easy-apply-modal textarea",
@@ -24,9 +26,9 @@ export default {
 
   // Login
   captcha: "#captcha-internal",
-  emailInput: "#session_key",
-  passwordInput: "#session_password",
-  loginSubmit: "button[class*='sign-in-form__submit-btn']",
+  emailInput: ".form__input--floating input[type='text']",
+  passwordInput: ".form__input--floating input[type='password']",
+  loginSubmit: ".login__form_action_container  button[type='submit']",
   skipButton: "button[text()='Skip']",
 
   // fetch user
@@ -35,7 +37,7 @@ export default {
   searchResultListItem: ".jobs-search-results-list li.jobs-search-results__list-item",
   searchResultListItemLink: "a.job-card-list__title",
   searchResultListItemCompanyName: "div.job-card-container__company-name, a.job-card-container__company-name",
-  jobDescription: "div.jobs-description-content > div.jobs-description-content__text > span",
+  jobDescription: "div#job-details",
   appliedToJobFeedback: ".artdeco-inline-feedback",
 
   // fetch guest
