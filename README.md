@@ -4,12 +4,24 @@ A tool designed to save you time when applying to linkedin jobs by applying to t
 
 To run this tool follow the following steps
 
-### First step, install the project's dependencies:
+### First step, clone the project
+
+
+Run the following command on your built-in terminal in VS Code:
+
+```
+git clone https://github.com/Manveer-Pbx1/LinkedIn-Bot
+```
+
+### Second step, install the project's dependencies:
+
+Install the libraries and other dependencies using the following command on your built-in terminal in VS Code
+
 ```
 npm i
 ```
 
-### Second step, modify the config.ts file 
+### Third step, find modify the config.ts file 
 
 *config.ts has the details you need to fill for you job roles, you can modify it and follow the structure below*
 
@@ -61,7 +73,7 @@ export default {
 }
 ```
 
-### Third step, run the program
+### Last step, run the program
 
   ```
   npm start
@@ -69,4 +81,6 @@ export default {
 
 ### How the tool is supposed to work
 
-Upon running the program, a new window would appear where first the login would happen automatically, and secondly, you might need to resolve the captcha on your own as LinkedIn practices to avoid abuse of bots.
+Upon running the program, a new window would appear where first the login would happen automatically, and then, you might need to resolve the captcha on your own as LinkedIn practices to avoid abuse of bots.
+
+After you have solved the captcha, you may see a message on your terminal that says, "Press enter to continue".
