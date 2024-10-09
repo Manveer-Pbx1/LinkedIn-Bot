@@ -15,6 +15,13 @@ git clone https://github.com/Manveer-Pbx1/LinkedIn-Bot
 
 ### Second step, install the project's dependencies:
 
+For this step, make sure you have node installed. You can check it by running the command:
+
+```
+node -v
+```
+If its not, you can install it by going to their official website (`[text](https://nodejs.org/en/download/package-manager)`)
+
 Install the libraries and other dependencies using the following command on your built-in terminal in VS Code
 
 ```
