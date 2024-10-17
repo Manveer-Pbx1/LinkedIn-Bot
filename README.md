@@ -10,7 +10,7 @@ To run this tool follow the following steps
 Run the following command on your built-in terminal in VS Code:
 
 ```
-git clone https://github.com/Manveer-Pbx1/LinkedIn-Bot
+git clone https://github.com/Manveer-Pbx1/LinkedIn-Bot.git
 ```
 
 ### Second step, install the project's dependencies:
