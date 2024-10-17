@@ -10,7 +10,7 @@ To run this tool follow the following steps
 Run the following command on your built-in terminal in VS Code:
 
 ```
-git clone https://github.com/Manveer-Pbx1/LinkedIn-Bot
+git clone https://github.com/Manveer-Pbx1/LinkedIn-Bot.git
 ```
 
 ### Second step, install the project's dependencies:
@@ -20,7 +20,13 @@ For this step, make sure you have node installed. You can check it by running th
 ```
 node -v
 ```
-If its not, you can install it by going to their official website (`[text](https://nodejs.org/en/download/package-manager)`)
+If not, you can install it by going to their official website (`(https://nodejs.org/en/download/package-manager)`)
+
+Go to the *LinkedIn-Bot* directory by entering this command:
+
+```
+cd LinkedIn-Bot
+```
 
 Install the libraries and other dependencies using the following command on your built-in terminal in VS Code
 
@@ -30,7 +36,7 @@ npm i
 
 ### Third step, find modify the config.ts file 
 
-*config.ts has the details you need to fill for you job roles, you can modify it and follow the structure below*
+*config.ts has the details you need to fill for your job roles, you can modify it and follow the structure below*
 
 ```TS
 export default {
