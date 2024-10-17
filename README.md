@@ -22,6 +22,12 @@ node -v
 ```
 If not, you can install it by going to their official website (`(https://nodejs.org/en/download/package-manager)`)
 
+Go to the *LinkedIn-Bot* directory by entering this command:
+
+```
+cd LinkedIn-Bot
+```
+
 Install the libraries and other dependencies using the following command on your built-in terminal in VS Code
 
 ```
