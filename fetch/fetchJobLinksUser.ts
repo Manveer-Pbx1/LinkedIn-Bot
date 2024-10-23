@@ -7,7 +7,7 @@ import selectors from '../selectors';
 
 const MAX_PAGE_SIZE = 7;
 const languageDetector = new LanguageDetect();
-// const cookies = JSON.parse(fs.readFileSync('./cookies.json', 'utf-8'));
+
 async function getJobSearchMetadata({ page, location, keywords }: { page: Page, location: string, keywords: string }) {
   // Navigate to LinkedIn jobs page
   await page.goto('https://linkedin.com/jobs', { waitUntil: "load" });
@@ -40,9 +40,7 @@ async function getJobSearchMetadata({ page, location, keywords }: { page: Page, 
   );
   await page.keyboard.press('Enter');
 
-
   await page.waitForNavigation({ waitUntil: 'load' });
-
   await page.waitForFunction(() => new URLSearchParams(document.location.search).has('geoId'));
 
   const geoId = await page.evaluate(() => new URLSearchParams(document.location.search).get('geoId'));
@@ -50,23 +48,22 @@ async function getJobSearchMetadata({ page, location, keywords }: { page: Page, 
   const numJobsHandle = await page.waitForSelector(selectors.searchResultListText, { timeout: 10000 }) as ElementHandle<HTMLElement>;
   const numAvailableJobs = await numJobsHandle.evaluate((el) => parseInt((el as HTMLElement).innerText.replace(',', '')));
 
-  console.log("Job handle: ",numJobsHandle);
-  console.log("Geo ID: ",geoId);
-  console.log("number of jobs: ", numAvailableJobs)
+  console.log("Job handle: ", numJobsHandle);
+  console.log("Geo ID: ", geoId);
+  console.log("number of jobs: ", numAvailableJobs);
+  
   return {
     geoId,
     numAvailableJobs
   };
 };
 
-
-
-
 interface PARAMS {
   page: Page,
   location: string,
   keywords: string,
   workplace: { remote: boolean, onSite: boolean, hybrid: boolean },
+  datePosted: { date_posted_past_week: boolean, date_posted_24_hours: boolean },
   jobTitle: string,
   jobDescription: string,
   jobDescriptionLanguages: string[]
@@ -75,10 +72,13 @@ interface PARAMS {
 /**
  * Fetches job links as a user (logged in)
  */
-async function* fetchJobLinksUser({ page, location, keywords, workplace: { remote, onSite, hybrid }, jobTitle, jobDescription, jobDescriptionLanguages }: PARAMS): AsyncGenerator<[string, string, string]> {
+async function* fetchJobLinksUser({ page, location, keywords, workplace: { remote, onSite, hybrid }, datePosted: { date_posted_24_hours, date_posted_past_week }, jobTitle, jobDescription, jobDescriptionLanguages }: PARAMS): AsyncGenerator<[string, string, string]> {
   let numSeenJobs = 0;
   let numMatchingJobs = 0;
   const fWt = [onSite, remote, hybrid].reduce((acc, c, i) => c ? [...acc, i + 1] : acc, [] as number[]).join(',');
+
+  // Always default to "Past 24 hours" filter if selected
+  const datePosted = date_posted_24_hours ? 'r86400' : (date_posted_past_week ? 'r604800' : '');
 
   const { geoId, numAvailableJobs } = await getJobSearchMetadata({ page, location, keywords });
 
@@ -87,6 +87,7 @@ async function* fetchJobLinksUser({ page, location, keywords, workplace: { remot
     location,
     start: numSeenJobs.toString(),
     f_WT: fWt,
+    f_TPR: datePosted, // Add date posted filter (Past 24 hours)
     f_AL: 'true'
   };
 
@@ -95,7 +96,7 @@ async function* fetchJobLinksUser({ page, location, keywords, workplace: { remot
   }
 
   const url = buildUrl('https://www.linkedin.com/jobs/search', searchParams);
-
+  
   const jobTitleRegExp = new RegExp(jobTitle, 'i');
   const jobDescriptionRegExp = new RegExp(jobDescription, 'i');
 
@@ -112,21 +113,11 @@ async function* fetchJobLinksUser({ page, location, keywords, workplace: { remot
       try {
         const [link, title] = await page.$eval(`${selectors.searchResultListItem}:nth-child(${i + 1}) ${selectors.searchResultListItemLink}`, (el) => {
           const linkEl = el as HTMLLinkElement;
-
           linkEl.click();
-
           return [linkEl.href.trim(), linkEl.innerText.trim()];
         });
 
-        // Wait for job description and Easy Apply button to be loaded
-        // await page.waitForFunction(() => {
-        //   const descriptionLoaded = !!document.querySelector(selectors.jobDescription);
-        //   const applyButtonVisible = !!document.querySelector(selectors.easyApplyButtonEnabled);
-        //   return descriptionLoaded && applyButtonVisible;
-        // });
-
-        // Try to click the apply button
-        console.log("Trying to click the apply button...")
+        console.log("Trying to click the apply button...");
         const applyButton = await page.$(selectors.easyApplyButtonEnabled);
         if (applyButton) {
           await applyButton.click();
@@ -137,7 +128,7 @@ async function* fetchJobLinksUser({ page, location, keywords, workplace: { remot
 
         const companyName = await page.$eval(`${selectors.searchResultListItem}:nth-child(${i + 1}) ${selectors.searchResultListItemCompanyName}`, el => (el as HTMLElement).innerText).catch(() => 'Unknown');
         const jobDescription = await page.$eval(selectors.jobDescription, el => (el as HTMLElement).innerText);
-        const jobDescriptionLanguage = languageDetector.detect(jobDescription, 1)[0][0];  
+        const jobDescriptionLanguage = languageDetector.detect(jobDescription, 1)[0][0];
         const matchesLanguage = jobDescriptionLanguages.includes("any") || jobDescriptionLanguages.includes(jobDescriptionLanguage);
 
         if (matchesLanguage && jobTitleRegExp.test(title) && jobDescriptionRegExp.test(jobDescription)) {
@@ -154,8 +145,4 @@ async function* fetchJobLinksUser({ page, location, keywords, workplace: { remot
   }
 }
 
-
 export default fetchJobLinksUser;
-
-// thoughts: i think we don't need the location thing as it will already be entered
-// TODO: remove the location and just perform search with keywords and also fix up the selectors in the way...
