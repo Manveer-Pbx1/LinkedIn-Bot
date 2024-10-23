@@ -78,7 +78,7 @@ async function* fetchJobLinksUser({ page, location, keywords, workplace: { remot
   const fWt = [onSite, remote, hybrid].reduce((acc, c, i) => c ? [...acc, i + 1] : acc, [] as number[]).join(',');
 
   // Always default to "Past 24 hours" filter if selected
-  const datePosted = date_posted_24_hours ? 'r86400' : (date_posted_past_week ? 'r604800' : '');
+  const datePosted = date_posted_past_week ? 'r604800' : '';
 
   const { geoId, numAvailableJobs } = await getJobSearchMetadata({ page, location, keywords });
 
