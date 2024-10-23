@@ -47,4 +47,8 @@ export default {
   searchResultListItemTitleGuest: ".base-search-card__title",
   searchResultListItemSubtitleGuest: ".base-search-card__subtitle",
   searchResultListItemLocationGuest: ".job-search-card__location",
+
+  // get the latest jobs
+  datePostedFilterButton: 'button[id*="searchFilter_timePostedRange"]', // Adjust as per actual LinkedIn HTML
+  datePosted24HoursOption: 'input[value="r86400"]', // The ID for the "Last 24 hours" radio button
 }
